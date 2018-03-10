@@ -1,7 +1,71 @@
+<i><!DOCTYPE html>
 <html>
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta content="text/html;charset=utf-8" http-equiv="Content-Type" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="format-detection" content="telephone=no">
+<script type="text/javascript" src="js/jquery.min.js"></script>
+<script src="js/angular.min.js"></script>
+<title>Optimists App</title>
+<script>
+    
+    var searchQuery ='hyderabad';
+   var loadMapScenario =function() {
+                var map = new Microsoft.Maps.Map(document.getElementById('myMap'), {
+                    /* No need to set credentials if already passed in URL */
+                    center: new Microsoft.Maps.Location(17.447412, 78.376230),
+                    zoom: 13 });
+                var sdsDataSourceUrl = 'https://spatial.virtualearth.net/REST/v1/data/f22876ec257b474b82fe2ffcb8393150/NavteqNA/NavteqPOIs';
+                // Load the Bing Spatial Data Services module 
+                Microsoft.Maps.loadModule('Microsoft.Maps.SpatialDataService', function () {
+                    var queryOptions = {
+                        queryUrl: sdsDataSourceUrl,
+                        spatialFilter: {
+                            spatialFilterType: 'nearby',
+                            location: map.getCenter(),
+                            radius: 25
+                        },
+                        filter: 'EntityTypeID eq 5540' // Filter to retrieve Gas Stations
+                    };
+                    //Process the query: getting all gas stations with 25km of map center
+                    Microsoft.Maps.SpatialDataService.QueryAPIManager.search(queryOptions, map, function (data) {
+                        map.entities.push(data);
+                    }, null, false, function (status, message) {
+                        document.getElementById('printoutPanel').innerHTML = 'Search failure. NetworkStatus: ' + status;
+                    });
+                });
+                
+            }
+angular.module('myApp',[]);
+    var mainCntrl = function($http){
+        var mainCntrl =this;
+        mainCntrl.submit = function(){
+           searchQuery = mainCntrl.value;
+            $http.get('https://www.bing.com/api/maps/mapcontrol?key= ArZHEouuZcFSRNHZJ5BSwJGEdK1fNWvRb3Li9lzWG7iEZMtfOGMF27eK8APWHKJs&callback=loadMapScenario').then(function(response) {
+				console.log("called");
+			});
+        }
+    }
+angular.module('myApp').controller('mainCntrl',['$http',mainCntrl]);
+function bootstrapApplication() {
+		angular.element(document).ready(function() {
+			angular.bootstrap(document, ["myApp"]);
+		});
+	}
+bootstrapApplication();
+</script>
+</head>
 <body>
-<h2>
-Hello
-</h2>
+	<div ng-controller="mainCntrl as mainCntrl">
+        Search : <input type="text" ng-model="mainCntrl.value"></input>
+    <br/>
+    <input type="button" ng-click="mainCntrl.submit()" value ="Search"></input>
+    <br/><br/>
+    <div id='printoutPanel'></div>
+        <div id='myMap' style='width: 100vw; height: 100vh;'></div>
+    
+	</div>
+    <script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?key= ArZHEouuZcFSRNHZJ5BSwJGEdK1fNWvRb3Li9lzWG7iEZMtfOGMF27eK8APWHKJs&callback=loadMapScenario' async defer></script>
 </body>
 </html>
